@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Generator - Create Your Dream Portfolio</title>
+    <link rel="stylesheet" href="generator-style.css">
+</head>
+<body>
+    <div class="background-effects">
+        <div class="lightning-orb"></div>
+        <div class="lightning-orb"></div>
+        <div class="lightning-orb"></div>
+        <div class="glitter-container"></div>
+        <div class="cursor-trail"></div>
+    </div>
+
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <h1>Portfolio Generator</h1>
+                <p>Create Your Dream Portfolio in Minutes</p>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <form id="portfolioForm" class="portfolio-form">
+                <!-- Basic Information -->
+                <section class="form-section">
+                    <h2>Basic Information</h2>
+                    <div class="input-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" name="fullName" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="role">Role/Title</label>
+                        <input type="text" id="role" name="role" placeholder="e.g., Full Stack Developer" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="tagline">Tagline</label>
+                        <input type="text" id="tagline" name="tagline" placeholder="e.g., Passionate Developer & Creative Photographer">
+                    </div>
+                </section>
+
+                <!-- About Me -->
+                <section class="form-section">
+                    <h2>About Me</h2>
+                    <div class="input-group">
+                        <label for="profilePhoto">Profile Photo</label>
+                        <input type="file" id="profilePhoto" name="profilePhoto" accept="image/*" required>
+                        <div class="file-preview" id="profilePreview"></div>
+                    </div>
+                    <div class="input-group">
+                        <label for="aboutMe">About Me Description</label>
+                        <textarea id="aboutMe" name="aboutMe" rows="6" placeholder="Tell us about yourself..." required></textarea>
+                    </div>
+                </section>
+
+                <!-- Skills -->
+                <section class="form-section">
+                    <h2>Skills</h2>
+                    <div class="skills-container">
+                        <div class="skill-input-group">
+                            <input type="text" placeholder="Skill name" class="skill-name">
+                            <input type="number" placeholder="Percentage" class="skill-percentage" min="0" max="100">
+                            <button type="button" class="add-skill-btn">Add</button>
+                        </div>
+                        <div class="skills-list" id="skillsList"></div>
+                    </div>
+                </section>
+
+                <!-- Education -->
+                <section class="form-section">
+                    <h2>Education</h2>
+                    <div class="education-container">
+                        <div class="education-input-group">
+                            <input type="text" placeholder="Degree" class="education-degree">
+                            <input type="text" placeholder="Institution" class="education-institution">
+                            <input type="text" placeholder="Year" class="education-year">
+                            <button type="button" class="add-education-btn">Add</button>
+                        </div>
+                        <div class="education-list" id="educationList"></div>
+                    </div>
+                </section>
+
+                <!-- Certificates -->
+                <section class="form-section">
+                    <h2>Certificates</h2>
+                    <div class="certificates-container">
+                        <div class="certificate-input-group">
+                            <input type="text" placeholder="Certificate Name" class="certificate-name">
+                            <input type="url" placeholder="Certificate Link" class="certificate-link">
+                            <button type="button" class="add-certificate-btn">Add</button>
+                        </div>
+                        <div class="certificates-list" id="certificatesList"></div>
+                    </div>
+                </section>
+
+                <!-- Photography Portfolio (Optional) -->
+                <section class="form-section">
+                    <h2>Photography Portfolio (Optional)</h2>
+                    <div class="photography-toggle">
+                        <label>
+                            <input type="checkbox" id="includePhotography" name="includePhotography">
+                            Include Photography Section
+                        </label>
+                    </div>
+                    <div class="photography-container" id="photographyContainer" style="display: none;">
+                        <div class="photography-input-group">
+                            <input type="file" class="photo-file" accept="image/*">
+                            <input type="text" placeholder="Photo Title" class="photo-title">
+                            <textarea placeholder="Photo Description" class="photo-description" rows="3"></textarea>
+                            <input type="text" placeholder="Location" class="photo-location">
+                            <button type="button" class="add-photo-btn">Add Photo</button>
+                        </div>
+                        <div class="photography-list" id="photographyList"></div>
+                    </div>
+                </section>
+
+                <!-- Resume -->
+                <section class="form-section">
+                    <h2>Resume</h2>
+                    <div class="input-group">
+                        <label for="resumeFile">Upload Resume (PDF)</label>
+                        <input type="file" id="resumeFile" name="resumeFile" accept=".pdf">
+                    </div>
+                </section>
+
+                <!-- Contact Information -->
+                <section class="form-section">
+                    <h2>Contact Information</h2>
+                    <div class="input-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="github">GitHub Link</label>
+                        <input type="url" id="github" name="github" placeholder="https://github.com/yourusername">
+                    </div>
+                    <div class="input-group">
+                        <label for="linkedin">LinkedIn Link</label>
+                        <input type="url" id="linkedin" name="linkedin" placeholder="https://linkedin.com/in/yourprofile">
+                    </div>
+                </section>
+
+                <div class="form-actions">
+                    <button type="submit" class="generate-btn">Generate Portfolio</button>
+                </div>
+            </form>
+        </main>
+
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loader">
+                <div class="lightning-ring"></div>
+                <p>Generating your amazing portfolio...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="generator-script.js"></script>
+</body>
+</html>
