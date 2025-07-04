@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease infinite;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            color: #333;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .background-effects {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .lightning {
+            position: absolute;
+            width: 2px;
+            height: 100px;
+            background: linear-gradient(to bottom, #fff, transparent);
+            animation: lightning 2s linear infinite;
+            opacity: 0.3;
+        }
+
+        @keyframes lightning {
+            0% { transform: translateY(-100px); opacity: 0; }
+            50% { opacity: 0.5; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+
+        .glitter {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #fff;
+            border-radius: 50%;
+            animation: glitter 3s linear infinite;
+        }
+
+        @keyframes glitter {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+        .mouse-follower {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: all 0.1s ease;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .header h1 {
+            font-size: 3em;
+            color: #fff;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #e0e0e0;
+        }
+
+        .form-section {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .form-section:hover {
+            transform: translateY(-5px);
+        }
+
+        .form-section h2 {
+            color: #fff;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4a90e2;
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 20px rgba(74, 144, 226, 0.3);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .form-group textarea {
+            height: 120px;
+            resize: vertical;
+        }
+
+        .file-input {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #4a90e2, #2a5ca0);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .dynamic-section {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+
+        .add-button {
+            background: linear-gradient(135deg, #00b894, #00a085);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .add-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .remove-button {
+            background: linear-gradient(135deg, #e17055, #d63031);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .remove-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .generate-button {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            display: block;
+            margin: 40px auto;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .generate-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .generate-button:hover::before {
+            left: 100%;
+        }
+
+        .generate-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .optional-section {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+        }
+
+        .toggle-button {
+            background: linear-gradient(135deg, #fd79a8, #fdcb6e);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4a90e2, #2a5ca0);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 30px;
+            margin-top: 40px;
+            color: #fff;
+        }
+
+        .instructions h2 {
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .instructions a {
+            color: #4a90e2;
+            text-decoration: none;
+        }
+
+        .instructions a:hover {
+            text-decoration: underline;
+        }
+
+        .status-message {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .success {
+            background-color: rgba(52, 168, 83, 0.3);
+            color: #fff;
+        }
+
+        .error {
+            background-color: rgba(234, 67, 53, 0.3);
+            color: #fff;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .form-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-effects">
+        <div class="mouse-follower"></div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>✨ Portfolio Generator ✨</h1>
+            <p>Create your stunning portfolio website in minutes</p>
+        </div>
+
+        <form id="portfolioForm">
+            <!-- Basic Information -->
+            <div class="form-section">
+                <h2>👤 Basic Information</h2>
+                <div class="form-group">
+                    <label for="userName">Full Name *</label>
+                    <input type="text" id="userName" name="userName" required placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label for="userRole">Your Role/Title *</label>
+                    <input type="text" id="userRole" name="userRole" placeholder="e.g., Web Developer, Designer, Student" required>
+                </div>
+                <div class="form-group">
+                    <label for="aboutMe">About Me *</label>
+                    <textarea id="aboutMe" name="aboutMe" placeholder="Tell us about yourself..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="userPhoto">Profile Photo *</label>
+                    <div class="file-input">
+                        <input type="file" id="userPhoto" name="userPhoto" accept="image/*" required>
+                        <label for="userPhoto" class="file-input-button">Choose Profile Photo</label>
+                    </div>
+                    <div id="photoStatus" class="status-message hidden"></div>
+                </div>
+                <div class="form-group">
+                    <label for="userResume">Resume PDF</label>
+                    <div class="file-input">
+                        <input type="file" id="userResume" name="userResume" accept=".pdf">
+                        <label for="userResume" class="file-input-button">Choose Resume (PDF)</label>
+                    </div>
+                    <div id="resumeStatus" class="status-message hidden"></div>
+                </div>
+            </div>
+
+            <!-- Skills Section -->
+            <div class="form-section">
+                <h2>🛠️ Skills</h2>
+                <div id="skillsContainer">
+                    <div class="dynamic-section">
+                        <div class="form-group">
+                            <label>Skill Name *</label>
+                            <input type="text" name="skillName" placeholder="e.g., JavaScript, Python, Design" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Proficiency Level (1-100) *</label>
+                            <input type="number" name="skillLevel" min="1" max="100" placeholder="85" required>
+                        </div>
+                        <button type="button" class="remove-button" onclick="removeSection(this)">Remove</button>
+                    </div>
+                </div>
+                <button type="button" class="add-button" onclick="addSkill()">+ Add Another Skill</button>
+            </div>
+
+            <!-- Education Section -->
+            <div class="form-section">
+                <h2>🎓 Education</h2>
+                <div id="educationContainer">
+                    <div class="dynamic-section">
+                        <div class="form-group">
+                            <label>Institution Name *</label>
+                            <input type="text" name="institutionName" placeholder="e.g., University of Technology" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Degree/Course *</label>
+                            <input type="text" name="degreeName" placeholder="e.g., Bachelor of Computer Science" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Year *</label>
+                            <input type="text" name="educationYear" placeholder="e.g., 2020-2024" required>
+                        </div>
+                        <button type="button" class="remove-button" onclick="removeSection(this)">Remove</button>
+                    </div>
+                </div>
+                <button type="button" class="add-button" onclick="addEducation()">+ Add Another Education</button>
+            </div>
+
+            <!-- Certificates Section -->
+            <div class="form-section">
+                <h2>🏆 Certificates</h2>
+                <div id="certificatesContainer">
+                    <div class="dynamic-section">
+                        <div class="form-group">
+                            <label>Certificate Name *</label>
+                            <input type="text" name="certificateName" placeholder="e.g., AWS Certified Developer" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Certificate Link</label>
+                            <input type="url" name="certificateLink" placeholder="https://certificate-link.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Issuing Organization *</label>
+                            <input type="text" name="certificateOrg" placeholder="e.g., Amazon Web Services" required>
+                        </div>
+                        <button type="button" class="remove-button" onclick="removeSection(this)">Remove</button>
+                    </div>
+                </div>
+                <button type="button" class="add-button" onclick="addCertificate()">+ Add Another Certificate</button>
+            </div>
+
+            <!-- Photography Section (Optional) -->
+            <div class="form-section optional-section">
+                <h2>📸 Photography (Optional)</h2>
+                <button type="button" class="toggle-button" onclick="togglePhotography()">Enable Photography Section</button>
+                <div id="photographySection" class="hidden">
+                    <div id="photographyContainer">
+                        <div class="dynamic-section">
+                            <div class="form-group">
+                                <label>Photo</label>
+                                <div class="file-input">
+                                    <input type="file" name="photographyImage" accept="image/*">
+                                    <label class="file-input-button">Choose Photo</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Photo Description</label>
+                                <input type="text" name="photographyDescription" placeholder="Describe this photo...">
+                            </div>
+                            <div class="form-group">
+                                <label>Location</label>
+                                <input type="text" name="photographyLocation" placeholder="Where was this taken?">
+                            </div>
+                            <button type="button" class="remove-button" onclick="removeSection(this)">Remove</button>
+                        </div>
+                    </div>
+                    <button type="button" class="add-button" onclick="addPhotography()">+ Add Another Photo</button>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="form-section">
+                <h2>📞 Contact Information</h2>
+                <div class="form-group">
+                    <label for="userEmail">Email *</label>
+                    <input type="email" id="userEmail" name="userEmail" placeholder="john.doe@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="userGithub">GitHub Profile</label>
+                    <input type="url" id="userGithub" name="userGithub" placeholder="https://github.com/yourusername">
+                </div>
+                <div class="form-group">
+                    <label for="userLinkedin">LinkedIn Profile</label>
+                    <input type="url" id="userLinkedin" name="userLinkedin" placeholder="https://linkedin.com/in/yourusername">
+                </div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+
+            <button type="submit" class="generate-button">🚀 Generate My Portfolio</button>
+        </form>
+
+        <div class="instructions">
+            <h2>📋 How to Deploy Your Portfolio</h2>
+            <ol>
+                <li><strong>Download:</strong> After generating, download the ZIP file containing your portfolio</li>
+                <li><strong>Extract:</strong> Extract the ZIP file to a folder on your computer</li>
+                <li><strong>GitHub Setup:</strong>
+                    <ul>
+                        <li>Create a new repository on GitHub</li>
+                        <li>Upload all the extracted files (index.html, style.css, script.js, and assets folder)</li>
+                        <li>Make sure the repository is public</li>
+                    </ul>
+                </li>
+                <li><strong>Netlify Deployment:</strong>
+                    <ul>
+                        <li>Go to <a href="https://netlify.com" target="_blank">netlify.com</a></li>
+                        <li>Click "New site from Git"</li>
+                        <li>Connect your GitHub account</li>
+                        <li>Select your portfolio repository</li>
+                        <li>Click "Deploy site"</li>
+                        <li>Your portfolio will be live in minutes!</li>
+                    </ul>
+                </li>
+                <li><strong>Alternative:</strong> You can also drag and drop the extracted folder directly to Netlify's deploy area</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Background Effects
+        function createLightning() {
+            const lightning = document.createElement('div');
+            lightning.className = 'lightning';
+            lightning.style.left = Math.random() * 100 + '%';
+            lightning.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.background-effects').appendChild(lightning);
+            
+            setTimeout(() => {
+                lightning.remove();
+            }, 2000);
+        }
+
+        function createGlitter() {
+            const glitter = document.createElement('div');
+            glitter.className = 'glitter';
+            glitter.style.left = Math.random() * 100 + '%';
+            glitter.style.top = Math.random() * 100 + '%';
+            glitter.style.animationDelay = Math.random() * 3 + 's';
+            document.querySelector('.background-effects').appendChild(glitter);
+            
+            setTimeout(() => {
+                glitter.remove();
+            }, 3000);
+        }
+
+        // Mouse follower
+        const mouseFollower = document.querySelector('.mouse-follower');
+        document.addEventListener('mousemove', (e) => {
+            mouseFollower.style.left = e.clientX + 'px';
+            mouseFollower.style.top = e.clientY + 'px';
+        });
+
+        // Create effects periodically
+        setInterval(createLightning, 800);
+        setInterval(createGlitter, 300);
+
+        // Form functionality
+        let isPhotographyEnabled = false;
+
+        function addSkill() {
+            const container = document.getElementById('skillsContainer');
+            const skillDiv = document.createElement('div');
+            skillDiv.className = 'dynamic-section';
+            skillDiv.innerHTML = `
+                <div class="form-group">
+                    <label>Skill Name *</label>
+                    <input type="text" name="skillName" placeholder="e.g., JavaScript, Python, Design" required>
+                </div>
+                <div class="form-group">
+                    <label>Proficiency Level (1-100) *</label>
+                    <input type="number" name="skillLevel" min="1" max="100" placeholder="85" required>
+                </div>
+                <button type="button" class="remove-button" onclick="removeSection(this)">Remove</button>
+            `;
+            container.appendChild(skillDiv);
+        }
+
+        function addEducation() {
+            const container = document.getElementById('educationContainer');
+            const educationDiv = document.createElement('div');
+            educationDiv.className = 'dynamic-section';
+            educationDiv.innerHTML = `
+                <div class="form-group">
+                    <label>Institution Name *</label>
+                    <input type="text" name="institutionName" placeholder="e.g., University of Technology" required>
+                </div>
+                <div class="form-group">
+                    <label>Degree/Course *</label>
+                    <input type="text" name="degreeName" placeholder="e.g., Bachelor of Computer Science" required>
+                </div>
+                <div class="form-group">
+                    <label>Year *</label>
+                    <input type="text" name="educationYear" placeholder="e.g., 2020-2024" required>
+                </div>
+                <button type="button" class="remove-button" onclick="removeSection(this)">Remove</button>
+            `;
+            container.appendChild(educationDiv);
+        }
+
+        function addCertificate() {
+            const container = document.getElementById('certificatesContainer');
+            const certificateDiv = document.createElement('div');
+            certificateDiv.className = 'dynamic-section';
+            certificateDiv.innerHTML = `
+                <div class="form-group">
+                    <label>Certificate Name *</label>
+                    <input type="text" name="certificateName" placeholder="e.g., AWS Certified Developer" required>
+                </div>
+                <div class="form-group">
+                    <label>Certificate Link</label>
+                    <input type="url" name="certificateLink" placeholder="https://certificate-link.com">
+                </div>
+                <div class="form-group">
+                    <label>Issuing Organization *</label>
+                    <input type="text" name="certificateOrg" placeholder="e.g., Amazon Web Services" required>
+                </div>
+                <button type="button" class="remove-button" onclick="removeSection(this)">Remove</button>
+            `;
+            container.appendChild(certificateDiv);
+        }
+
+        function addPhotography() {
+            const container = document.getElementById('photographyContainer');
+            const photographyDiv = document.createElement('div');
+            photographyDiv.className = 'dynamic-section';
+            photographyDiv.innerHTML = `
+                <div class="form-group">
+                    <label>Photo</label>
+                    <div class="file-input">
+                        <input type="file" name="photographyImage" accept="image/*">
+                        <label class="file-input-button">Choose Photo</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Photo Description</label>
+                    <input type="text" name="photographyDescription" placeholder="Describe this photo...">
+                </div>
+                <div class="form-group">
+                    <label>Location</label>
+                    <input type="text" name="photographyLocation" placeholder="Where was this taken?">
+                </div>
+                <button type="button" class="remove-button" onclick="removeSection(this)">Remove</button>
+            `;
+            container.appendChild(photographyDiv);
+        }
+
+        function removeSection(button) {
+            button.closest('.dynamic-section').remove();
+        }
+
+        function togglePhotography() {
+            const section = document.getElementById('photographySection');
+            const button = document.querySelector('.toggle-button');
+            
+            if (isPhotographyEnabled) {
+                section.classList.add('hidden');
+                button.textContent = 'Enable Photography Section';
+            } else {
+                section.classList.remove('hidden');
+                button.textContent = 'Disable Photography Section';
+            }
+            isPhotographyEnabled = !isPhotographyEnabled;
+        }
+
+        // Progress bar
+        function updateProgress() {
+            const form = document.getElementById('portfolioForm');
+            const inputs = form.querySelectorAll('input[required], textarea[required]');
+            let filled = 0;
+            
+            inputs.forEach(input => {
+                if (input.value.trim() !== '') {
+                    filled++;
+                }
+            });
+            
+            const progress = (filled / inputs.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        // Update progress on input change
+        document.addEventListener('input', updateProgress);
+
+        // File input labels
+        document.addEventListener('change', function(e) {
+            if (e.target.type === 'file') {
+                const label = e.target.nextElementSibling;
+                if (e.target.files.length > 0) {
+                    label.textContent = e.target.files[0].name;
+                    
+                    // Show upload status
+                    const statusId = e.target.id + 'Status';
+                    const statusElement = document.getElementById(statusId);
+                    if (statusElement) {
+                        statusElement.textContent = 'File selected: ' + e.target.files[0].name;
+                        statusElement.classList.remove('hidden', 'error');
+                        statusElement.classList.add('success');
+                    }
+                }
+            }
+            updateProgress();
+        });
+
+        // Form submission
+        document.getElementById('portfolioForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            generatePortfolio();
+        });
+
+        async function generatePortfolio() {
+            const form = document.getElementById('portfolioForm');
+            const formData = new FormData(form);
+            const portfolioData = {};
+            
+            // Get basic information
+            portfolioData.name = formData.get('userName');
+            portfolioData.role = formData.get('userRole');
+            portfolioData.about = formData.get('aboutMe');
+            portfolioData.email = formData.get('userEmail');
+            portfolioData.github = formData.get('userGithub');
+            portfolioData.linkedin = formData.get('userLinkedin');
+            
+            // Get profile photo
+            const photoFile = formData.get('userPhoto');
+            if (photoFile && photoFile.size > 0) {
+                portfolioData.profilePhoto = await fileToBase64(photoFile);
+            } else {
+                alert('Please select a profile photo');
+                return;
+            }
+            
+            // Get resume
+            const resumeFile = formData.get('userResume');
+            if (resumeFile && resumeFile.size > 0) {
+                portfolioData.resume = await fileToBase64(resumeFile);
+                portfolioData.resumeName = resumeFile.name;
+            }
+            
+            // Get skills
+            portfolioData.skills = [];
+            const skillNames = formData.getAll('skillName');
+            const skillLevels = formData.getAll('skillLevel');
+            skillNames.forEach((name, index) => {
+                portfolioData.skills.push({
+                    name: name,
+                    level: skillLevels[index]
+                });
+            });
+            
+            // Get education
+            portfolioData.education = [];
+            const institutionNames = formData.getAll('institutionName');
+            const degreeNames = formData.getAll('degreeName');
+            const educationYears = formData.getAll('educationYear');
+            institutionNames.forEach((institution, index) => {
+                portfolioData.education.push({
+                    institution: institution,
+                    degree: degreeNames[index],
+                    year: educationYears[index]
+                });
+            });
+            
+            // Get certificates
+            portfolioData.certificates = [];
+            const certificateNames = formData.getAll('certificateName');
+            const certificateLinks = formData.getAll('certificateLink');
+            const certificateOrgs = formData.getAll('certificateOrg');
+            certificateNames.forEach((name, index) => {
+                portfolioData.certificates.push({
+                    name: name,
+                    link: certificateLinks[index],
+                    organization: certificateOrgs[index]
+                });
+            });
+            
+            // Get photography (if enabled)
+            if (isPhotographyEnabled) {
+                portfolioData.photography = [];
+                const photographyImages = formData.getAll('photographyImage');
+                const photographyDescriptions = formData.getAll('photographyDescription');
+                const photographyLocations = formData.getAll('photographyLocation');
+                
+                photographyImages.forEach((image, index) => {
+                    if (image.size > 0) {
+                        portfolioData.photography.push({
+                            description: photographyDescriptions[index],
+                            location: photographyLocations[index]
+                        });
+                    }
+                });
+            }
+            
+            // Generate portfolio files
+            const portfolioFiles = generatePortfolioFiles(portfolioData);
+            
+            // Create and download ZIP
+            downloadZip(portfolioFiles, `${portfolioData.name.replace(/\s+/g, '_')}_Portfolio.zip`);
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        function generatePortfolioFiles(data) {
+            const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${data.name} - Portfolio</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="#home">${data.name}</a>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="#home" class="nav-link">Home</a></li>
+                <li class="nav-item"><a href="#about" class="nav-link">About</a></li>
+                <li class="nav-item"><a href="#skills" class="nav-link">Skills</a></li>
+                <li class="nav-item"><a href="#education" class="nav-link">Education</a></li>
+                <li class="nav-item"><a href="#certificates" class="nav-link">Certificates</a></li>
+                ${data.photography ? '<li class="nav-item"><a href="#photography" class="nav-link">Photography</a></li>' : ''}
+                <li class="nav-item"><a href="#contact" class="nav-link">Contact</a></li>
+            </ul>
+            <div class="nav-toggle" id="mobile-menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1>Hello, I'm <span class="highlight">${data.name}</span></h1>
+                <p class="hero-subtitle">${data.role}</p>
+                <p class="hero-description">${data.about}</p>
+                <div class="hero-buttons">
+                    <a href="#contact" class="btn btn-primary">Get In Touch</a>
+                    ${data.resume ? `<a href="data:application/pdf;base64,${data.resume.split(',')[1]}" download="${data.resumeName || 'resume.pdf'}" class="btn btn-secondary">Download Resume</a>` : ''}
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="${data.profilePhoto}" alt="${data.name}">
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="about">
+        <div class="container">
+            <h2 class="section-title">About Me</h2>
+            <div class="about-content">
+                <div class="about-text">
+                    <p>${data.about}</p>
+                </div>
+                <div class="about-image">
+                    <img src="${data.profilePhoto}" alt="${data.name}">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="skills" class="skills">
+        <div class="container">
+            <h2 class="section-title">Skills</h2>
+            <div class="skills-grid">
+                ${data.skills.map(skill => `
+                    <div class="skill-item">
+                        <div class="skill-name">${skill.name}</div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: ${skill.level}%"></div>
+                        </div>
+                        <div class="skill-percentage">${skill.level}%</div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    </section>
+
+    <section id="education" class="education">
+        <div class="container">
+            <h2 class="section-title">Education</h2>
+            <div class="education-timeline">
+                ${data.education.map(edu => `
+                    <div class="education-item">
+                        <div class="education-year">${edu.year}</div>
+                        <div class="education-content">
+                            <h3>${edu.degree}</h3>
+                            <p>${edu.institution}</p>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    </section>
+
+    <section id="certificates" class="certificates">
+        <div class="container">
+            <h2 class="section-title">Certificates</h2>
+            <div class="certificates-grid">
+                ${data.certificates.map(cert => `
+                    <div class="certificate-item">
+                        <h3>${cert.name}</h3>
+                        <p class="certificate-org">${cert.organization}</p>
+                        ${cert.link ? `<a href="${cert.link}" target="_blank" class="certificate-link">View Certificate</a>` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    </section>
+
+    ${data.photography ? `
+    <section id="photography" class="photography">
+        <div class="container">
+            <h2 class="section-title">Photography</h2>
+            <div class="photography-grid">
+                ${data.photography.map(photo => `
+                    <div class="photo-item">
+                        <img src="${photo.image}" alt="${photo.description}">
+                        <div class="photo-overlay">
+                            <h3>${photo.description}</h3>
+                            <p><i class="fas fa-map-marker-alt"></i> ${photo.location}</p>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    </section>
+    ` : ''}
+
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2 class="section-title">Contact Me</h2>
+            <div class="contact-content">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <a href="mailto:${data.email}">${data.email}</a>
+                    </div>
+                    ${data.github ? `
+                    <div class="contact-item">
+                        <i class="fab fa-github"></i>
+                        <a href="${data.github}" target="_blank">GitHub</a>
+                    </div>
+                    ` : ''}
+                    ${data.linkedin ? `
+                    <div class="contact-item">
+                        <i class="fab fa-linkedin"></i>
+                        <a href="${data.linkedin}" target="_blank">LinkedIn</a>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 ${data.name}. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>`;
+
+            const cssContent = `* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f8f9fa;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Navigation */
+.navbar {
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 70px;
+}
+
+.nav-logo a {
+    font-size: 24px;
+    font-weight: bold;
+    color: #2c3e50;
+    text-decoration: none;
+}
+
+.nav-menu {
+    display: flex;
+    list-style: none;
+    gap: 30px;
+}
+
+.nav-link {
+    color: #333;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.nav-link:hover {
+    color: #3498db;
+}
+
+.nav-toggle {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
+}
+
+.bar {
+    width: 25px;
+    height: 3px;
+    background-color: #333;
+    margin: 3px 0;
+    transition: 0.3s;
+}
+
+/* Hero Section */
+.hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 120px 0 80px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+.hero-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+    align-items: center;
+}
+
+.hero-text h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    animation: fadeInUp 1s ease;
+}
+
+.highlight {
+    color: #ffd700;
+}
+
+.hero-subtitle {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    opacity: 0.9;
+}
+
+.hero-description {
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+    opacity: 0.8;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 20px;
+}
+
+.btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: white;
+    border: 2px solid white;
+}
+
+.btn-secondary:hover {
+    background-color: white;
+    color: #333;
+}
+
+.hero-image {
+    text-align: center;
+}
+
+.hero-image img {
+    width: 300px;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 5px solid white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+/* Section Styles */
+section {
+    padding: 80px 0;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 50px;
+    color: #2c3e50;
+}
+
+/* About Section */
+.about {
+    background: white;
+}
+
+.about-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 50px;
+    align-items: center;
+}
+
+.about-text {
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+
+.about-image img {
+    width: 100%;
+    max-width: 300px;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+/* Skills Section */
+.skills {
+    background: #f8f9fa;
+}
+
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.skill-item {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.skill-name {
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+.skill-bar {
+    width: 100%;
+    height: 10px;
+    background-color: #ecf0f1;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.skill-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #3498db, #2980b9);
+    border-radius: 5px;
+    transition: width 1s ease;
+}
+
+.skill-percentage {
+    text-align: right;
+    font-weight: bold;
+    color: #3498db;
+}
+
+/* Education Section */
+.education {
+    background: white;
+}
+
+.education-timeline {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.education-item {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 40px;
+    padding: 30px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-left: 4px solid #3498db;
+}
+
+.education-year {
+    font-weight: bold;
+    color: #3498db;
+    min-width: 100px;
+}
+
+.education-content h3 {
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+/* Certificates Section */
+.certificates {
+    background: #f8f9fa;
+}
+
+.certificates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.certificate-item {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.certificate-item h3 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+.certificate-org {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.certificate-link {
+    color: #3498db;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.certificate-link:hover {
+    text-decoration: underline;
+}
+
+/* Photography Section */
+.photography {
+    background: white;
+}
+
+.photography-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.photo-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.photo-item img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.photo-item:hover img {
+    transform: scale(1.05);
+}
+
+.photo-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    color: white;
+    padding: 20px;
+    transform: translateY(100%);
+    transition: transform 0.3s;
+}
+
+.photo-item:hover .photo-overlay {
+    transform: translateY(0);
+}
+
+/* Contact Section */
+.contact {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.contact-content {
+    text-align: center;
+}
+
+.contact-info {
+    display: flex;
+    justify-content: center;
+    gap: 50px;
+    flex-wrap: wrap;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 1.1rem;
+}
+
+.contact-item i {
+    font-size: 1.5rem;
+    color: #ffd700;
+}
+
+.contact-item a {
+    color: white;
+    text-decoration: none;
+}
+
+.contact-item a:hover {
+    text-decoration: underline;
+}
+
+/* Footer */
+.footer {
+    background: #2c3e50;
+    color: white;
+    text-align: center;
+    padding: 20px 0;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .nav-menu {
+        position: fixed;
+        left: -100%;
+        top: 70px;
+        flex-direction: column;
+        background-color: white;
+        width: 100%;
+        text-align: center;
+        transition: 0.3s;
+        box-shadow: 0 10px 27px rgba(0,0,0,0.05);
+        padding: 20px 0;
+    }
+
+    .nav-menu.active {
+        left: 0;
+    }
+
+    .nav-toggle {
+        display: flex;
+    }
+
+    .hero-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .hero-text h1 {
+        font-size: 2rem;
+    }
+
+    .about-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .contact-info {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .skills-grid,
+    .certificates-grid,
+    .photography-grid {
+        grid-template-columns: 1fr;
+    }
+}`;
+
+            const jsContent = `// Mobile menu toggle
+const mobileMenu = document.getElementById('mobile-menu');
+const navMenu = document.querySelector('.nav-menu');
+
+mobileMenu.addEventListener('click', () => {
+    mobileMenu.classList.toggle('active');
+    navMenu.classList.toggle('active');
+});
+
+// Close mobile menu when clicking on a link
+document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', () => {
+        mobileMenu.classList.remove('active');
+        navMenu.classList.remove('active');
+    });
+});
+
+// Smooth scrolling for navigation links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
+
+// Animate skill bars on scroll
+const observerOptions = {
+    threshold: 0.5,
+    rootMargin: '0px 0px -100px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const skillBars = entry.target.querySelectorAll('.skill-progress');
+            skillBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 200);
+            });
+        }
+    });
+}, observerOptions);
+
+const skillsSection = document.querySelector('.skills');
+if (skillsSection) {
+    observer.observe(skillsSection);
+}
+
+// Add scroll effect to navbar
+window.addEventListener('scroll', () => {
+    const navbar = document.querySelector('.navbar');
+    if (window.scrollY > 50) {
+        navbar.style.background = 'rgba(255, 255, 255, 0.95)';
+        navbar.style.backdropFilter = 'blur(10px)';
+    } else {
+        navbar.style.background = '#fff';
+        navbar.style.backdropFilter = 'none';
+    }
+});`;
+
+            return {
+                'index.html': htmlContent,
+                'style.css': cssContent,
+                'script.js': jsContent
+            };
+        }
+
+        function downloadZip(files, filename) {
+            // Create a simple ZIP structure
+            const zip = new JSZip();
+            
+            // Add files to zip
+            Object.keys(files).forEach(fileName => {
+                zip.file(fileName, files[fileName]);
+            });
+            
+            // Generate zip file
+            zip.generateAsync({ type: 'blob' }).then(content => {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Show success message
+                alert('Portfolio generated successfully! Your download should start shortly.');
+            });
+        }
+    </script>
+</body>
+</html>
